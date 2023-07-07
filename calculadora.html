@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        let y = "";
+        let parser = "";
+        let xmlDoc = "";
+        let x = "";
+        let z = "";
+        const b = "<button></button>";
+        
+        function escolha(cad1, cad2) {
+            if (z.getElementsByTagName("select")[0] == null) {
+                z.innerHTML = "";
+                let pag = "<select onchange=" + cad2 + "><option/>";
+                Array.from(cad1, (h) => pag += "<option>" + h.textContent + "</option>");
+                pag += "</select>";
+                z.innerHTML = pag;
+            }
+       }
+
+        function contas(cad1, cad2, cad3) {
+            z.innerHTML = "";
+            let pag = "";
+
+            for (i = 0; i < cad3.length; i++) {
+                pag += "<p>" + cad1[i].textContent + "</p>" + "<h1>" + cad2[i].textContent + "</h1>";
+
+                if (cad3[i].getElementsByTagName("parc")[0] != null) {
+                    pag += limitepgast(cad3[i]);
+                }
+            }
+
+            z.innerHTML = pag;
+        }
+
+        function selec() {
+            let n = z.getElementsByTagName("select")[0].selectedIndex - 1;
+            z.innerHTML = "";
+            let l = x.childNodes[n];
+            let pag = "<p>" + l.getElementsByTagName("descricao")[0].textContent + "</p>" + "<h1>" + l.getElementsByTagName("total")[0].textContent + "</h1>";
+            if (l.getElementsByTagName("parc")[0] != null) {
+                Array.from(l.getElementsByTagName("valor"), (h, i) => pag += "<p>R$ " + h.textContent.replace(".", ",") + " - " + l.getElementsByTagName("parc")[i].textContent + " parcelas restantes</p>");
+                pag += "<p>R$ " + l.getElementsByTagName("compras")[0].textContent.replace(".", ",") + " - compras realizada no mês</p>";
+            }
+
+            z.setAttribute("onclick", "iniciar()");
+            z.innerHTML = pag + b + b;
+            Array.from(["OK", "Cancelar"], (h, i) => z.getElementsByTagName("button")[i].innerHTML = h);
+        }
+
+        function iniciar() {
+            if (y == "") {
+                y = window.localStorage;
+                parser = parser = new DOMParser();
+                xmlDoc = parser.parseFromString(y.getItem("teste"), "text/xml")
+                x = xmlDoc.childNodes[0];
+                z = document.body;
+            }
+
+            z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec()')");
+            contas(x.getElementsByTagName("descricao"), x.getElementsByTagName("total"), x.childNodes);
+        }
+
+        function limitepgast(cad1) {
+            let soma = 0;
+            Array.from(cad1.getElementsByTagName("parc"), (h, i) => soma += +h.textContent * +cad1.getElementsByTagName("valor")[i].textContent);
+
+            if (cad1.getElementsByTagName("compras")[0] != null) {
+                soma += +cad1.getElementsByTagName("compras")[0].textContent;
+            }
+
+            soma = Number(+cad1.getElementsByTagName("limite")[0].textContent - soma).toFixed(2);
+            return "<p>Limite restante: R$ " + soma.toString().replace(".", ",") + "</p><br>";
+        }
+
+    </script>
+</head>
+<body onload="iniciar()">
+    
+</body>
+</html>
