@@ -10,7 +10,10 @@
         let xmlDoc = "";
         let x = "";
         let z = "";
-        const b = "<button></button>";
+        const bOK = "<button onclick=''>OK</button> ";
+        const bCancel = "<button onclick='window.location.reload()'>Cancelar</button>";
+        const inp = "<input type='text'><br><br>";
+        const arit = "+-*/";
         
         function escolha(cad1, cad2) {
             if (z.getElementsByTagName("select")[0] == null) {
@@ -33,10 +36,10 @@
                     pag += limitepgast(cad3[i]);
                 }
             }
-
+            
             z.innerHTML = pag;
         }
-
+        
         function selec() {
             let n = z.getElementsByTagName("select")[0].selectedIndex - 1;
             z.innerHTML = "";
@@ -46,10 +49,9 @@
                 Array.from(l.getElementsByTagName("valor"), (h, i) => pag += "<p>R$ " + h.textContent.replace(".", ",") + " - " + l.getElementsByTagName("parc")[i].textContent + " parcelas restantes</p>");
                 pag += "<p>R$ " + l.getElementsByTagName("compras")[0].textContent.replace(".", ",") + " - compras realizada no mês</p>";
             }
-
-            z.setAttribute("onclick", "iniciar()");
-            z.innerHTML = pag + b + b;
-            Array.from(["OK", "Cancelar"], (h, i) => z.getElementsByTagName("button")[i].innerHTML = h);
+            
+            z.setAttribute("onclick", "");
+            z.innerHTML = pag + inp + bOK + bCancel;
         }
 
         function iniciar() {
@@ -60,7 +62,7 @@
                 x = xmlDoc.childNodes[0];
                 z = document.body;
             }
-
+            
             z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec()')");
             contas(x.getElementsByTagName("descricao"), x.getElementsByTagName("total"), x.childNodes);
         }
@@ -75,6 +77,58 @@
 
             soma = Number(+cad1.getElementsByTagName("limite")[0].textContent - soma).toFixed(2);
             return "<p>Limite restante: R$ " + soma.toString().replace(".", ",") + "</p><br>";
+        }
+
+        function equacao(cad1, cad2, cad3) {
+            try {
+                if (cad2 == "") throw "Nenhum valor digitado.";
+                if ("+-*/".includes(cad3) == false) throw "Não há sinal de operação aritmética.";
+                if (isNaN(cad2)) throw "Esse valor não é um número.";
+                if (cad3 == "+") return ((cad1 + cad2) / 100).toFixed(2);
+                if (cad3 == "-") return ((cad1 - cad2) / 100).toFixed(2);
+                if (cad3 == "*") return ((cad1 * cad2) / 100).toFixed(2);
+                if (cad3 == "/") return ((cad1 / cad2) / 100).toFixed(2);
+            }
+            catch(err) {
+                alert(err);
+            }
+        }
+
+        function numero(cad1) {
+            cad1 = cad1.replaceAll(",", ".");
+            let tP = cad1.lastIndexOf(".");
+            let tN = cad1.slice(0, tP).replaceAll(".", "");
+
+            if (isNaN(Number(cad1.replaceAll(".", ""))) == false) {
+                if (tP > -1) {
+                    tN += Number(cad1.slice(tP)).toFixed(2).slice(-2);
+                    return Number(tN);
+                }
+                else {
+                    return Number(cad1);
+                }
+            }
+        }
+
+        function loopAritmetico(cad1) {
+            let t = [new Array(), new Array()];
+            t[1][0] = cad1;
+
+            for (let i in cad1) {
+                if (arit.includes(cad1[i])) {
+                    t[0].push(cad1[i]);
+
+                    if (i > 0) {
+                        t[1][0] = t[1][0].replace(cad1[i], ";");
+                    }
+                    else {
+                        t[1][0] = t[1][0].replace(cad1[i], "0");
+                    }
+                }
+            }
+
+            t[1] = t[1][0].split(";");
+            return t;
         }
 
     </script>
