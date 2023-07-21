@@ -10,9 +10,11 @@
         let xmlDoc = "";
         let x = "";
         let z = "";
-        const bOK = "<button onclick=''>OK</button> ";
+        let n = 0;
+        let l = "teste";
+        const bOK = "<button onclick='salvar()'>OK</button> ";
         const bCancel = "<button onclick='window.location.reload()'>Cancelar</button>";
-        const inp = "<input type='text'><br><br>";
+        const inp = "<input type='text' autofocus><br><br>";
         const arit = "+-*/";
         
         function escolha(cad1, cad2) {
@@ -23,13 +25,13 @@
                 pag += "</select>";
                 z.innerHTML = pag;
             }
-       }
+        }
 
         function contas(cad1, cad2, cad3) {
             z.innerHTML = "";
             let pag = "";
 
-            for (i = 0; i < cad3.length; i++) {
+            for (let i = 0; i < cad3.length; i++) {
                 pag += "<p>" + cad1[i].textContent + "</p>" + "<h1>" + cad2[i].textContent + "</h1>";
 
                 if (cad3[i].getElementsByTagName("parc")[0] != null) {
@@ -41,7 +43,7 @@
         }
         
         function selec() {
-            let n = z.getElementsByTagName("select")[0].selectedIndex - 1;
+            n = z.getElementsByTagName("select")[0].selectedIndex - 1;
             z.innerHTML = "";
             let l = x.childNodes[n];
             let pag = "<p>" + l.getElementsByTagName("descricao")[0].textContent + "</p>" + "<h1>" + l.getElementsByTagName("total")[0].textContent + "</h1>";
@@ -57,8 +59,8 @@
         function iniciar() {
             if (y == "") {
                 y = window.localStorage;
-                parser = parser = new DOMParser();
-                xmlDoc = parser.parseFromString(y.getItem("teste"), "text/xml")
+                parser = new DOMParser();
+                xmlDoc = parser.parseFromString(y.getItem(l), "text/xml")
                 x = xmlDoc.childNodes[0];
                 z = document.body;
             }
@@ -81,16 +83,18 @@
 
         function equacao(cad1, cad2, cad3) {
             try {
-                if (cad2 == "") throw "Nenhum valor digitado.";
-                if ("+-*/".includes(cad3) == false) throw "Não há sinal de operação aritmética.";
-                if (isNaN(cad2)) throw "Esse valor não é um número.";
-                if (cad3 == "+") return ((cad1 + cad2) / 100).toFixed(2);
-                if (cad3 == "-") return ((cad1 - cad2) / 100).toFixed(2);
-                if (cad3 == "*") return ((cad1 * cad2) / 100).toFixed(2);
-                if (cad3 == "/") return ((cad1 / cad2) / 100).toFixed(2);
+                // if (isNaN(cad2)) throw "Esse valor não é um número.";
+                // if (!(cad2 > -1)) throw "Nenhum valor digitado.";
+                if (arit.includes(cad3) == false) throw "Não há sinal de operação aritmética.";
+                // cad2 = Number(cad2);
+                cad1 = Number(cad1);
+                if (cad3 == "+") return (cad1 + cad2).toFixed(2);
+                if (cad3 == "-") return (cad1 - cad2).toFixed(2);
+                if (cad3 == "*") return (cad1 * cad2).toFixed(2);
+                if (cad3 == "/") return (cad1 / cad2).toFixed(2);
             }
             catch(err) {
-                alert(err);
+                // alert(err);
             }
         }
 
@@ -101,11 +105,11 @@
 
             if (isNaN(Number(cad1.replaceAll(".", ""))) == false) {
                 if (tP > -1) {
-                    tN += Number(cad1.slice(tP)).toFixed(2).slice(-2);
-                    return Number(tN);
+                    tN += Number(cad1.slice(tP)).toFixed(2).slice(-3);
+                    return tN;
                 }
                 else {
-                    return Number(cad1);
+                    return cad1;
                 }
             }
         }
@@ -128,7 +132,66 @@
             }
 
             t[1] = t[1][0].split(";");
+            t[1] = Array.from(t[1], (h) => Number(numero(h)));
+
+            if (t[0].length != t[1].length) {
+                t[0].unshift("+");
+            }
+
             return t;
+        }
+
+        function salvar() {
+            let texto = z.getElementsByTagName("input")[0];
+            let t = loopAritmetico(texto.value);
+
+            if (t != "") {
+                let t1 = "";
+                let t2 = "";
+                let t3 = "";
+                
+                if (x.childNodes[n].getElementsByTagName("compras")[0] == null) {
+                    t2 = x.childNodes[n].getElementsByTagName("total")[0];
+                    t1 = t2.textContent.slice(3).replace(",", ".");         
+                    t1 = erroNaN(t1, t[1], t[0]);
+
+                    if (!(isNaN(t1))) {
+                        t2.textContent = "R$ " + t1.replace(".", ",");
+                    }
+                }
+                else {
+                    t2 = x.childNodes[n].getElementsByTagName("compras")[0];
+                    t3 = x.childNodes[n].getElementsByTagName("total")[0];
+                    t1 = t2.textContent;                    
+                    t1 = erroNaN(t1, t[1], t[0]);
+                    t2.textContent = t1;
+                    t1 = t3.textContent.slice(3).replace(",", ".");
+                    t1 = erroNaN(t1, t[1], t[0]);
+                    t3.textContent = "R$ " + t1.replace(".", ",");
+                }
+                
+                if (!(isNaN(t1))) {
+                    y.setItem(l, x.outerHTML);
+                    y = "";
+                    window.location.reload();
+                }
+                else {
+                    texto.focus();
+                }
+            }
+        }
+
+        function erroNaN(cad1, cad2, cad3) {
+            for (let i in cad2) {
+                cad1 = equacao(cad1, cad2[i], cad3[i]);
+
+                if (isNaN(cad1)) {
+                    alert("Parâmetro " + (+i+1) + " da expressão incorreto");
+                    break;
+                }
+            }
+
+            return cad1;
         }
 
     </script>
