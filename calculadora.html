@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Calculadora Doméstica</title>
     <script>
+        let SN = ["N", "N"];
         let y = "";
         let parser = "";
         let xmlDoc = "";
@@ -12,19 +13,73 @@
         let z = "";
         let n = 0;
         let l = "teste";
-        const bOK = "<button onclick='salvar()'>OK</button> ";
+        const pagInserir = "<input type='text' autofocus placeholder='Descrição' id='valor'>" +
+                            "<p>Novo controle será cartão de crédito?</p>" +
+                            "<input type='radio' onclick='sn(1)' id='sim' name='sn1'>" +
+                            "<label for='sim'>Sim</label>" +
+                            "<input type='radio' onclick='sn(2)' id='nao' name='sn1' checked>" +
+                            "<label for='nao'>Não</label>" +
+                            "<div id='parcela'>" +
+                                "<p>Novo controle terá despesa parcelada?</p>" +
+                                "<input type='radio' onclick='sn(3)' id='sim2' name='sn2'>" +
+                                "<label for='sim2'>Sim</label>" +
+                                "<input type='radio' onclick='sn(4)' id='nao2' checked name='sn2'>" +
+                                "<label for='nao2'>Não</label>" +
+                            "</div><br><br>";
+        const bSalvar = "<button id='salva' onclick='salvar(2)'>Salvar</button> ";
+        const bInserir = "<button onclick='inserir()' id='insere'>Inserir</button> ";
+        const bOK = "<button onclick='salvar(1)'>OK</button> ";
         const bCancel = "<button onclick='window.location.reload()'>Cancelar</button>";
-        const inp = "<input type='text' autofocus><br><br>";
+        const bExcluir = "<button onclick='excluir()'>Excluir</button> ";
+        const bVoltar = "<button onclick='voltar()'>Cancelar</button>";
+        const inp = "<input type='text' autofocus placeholder='Gastos/Rendimentos' id='valor'><br><br>";
         const arit = "+-*/";
-        
-        function escolha(cad1, cad2) {
-            if (z.getElementsByTagName("select")[0] == null) {
-                z.innerHTML = "";
-                let pag = "<select onchange=" + cad2 + "><option/>";
-                Array.from(cad1, (h) => pag += "<option>" + h.textContent + "</option>");
-                pag += "</select>";
-                z.innerHTML = pag;
+
+        function voltar() {
+            z.childNodes[0].setAttribute("onchange", "selec(1)");
+            document.getElementById("entrada").hidden = false;
+            z.childNodes[z.childNodes.length - 1].remove();
+        }
+
+        function excluir() {
+            z.childNodes[0].setAttribute("onchange", "selec(2)");
+            document.getElementById("entrada").hidden = true;
+            z.innerHTML += bVoltar;
+        }
+
+        function sn(cad1) {
+            switch (cad1) {
+                case 1:
+                    SN[0] = "S";
+                    SN[1] = "S";
+                    document.getElementById("parcela").hidden = true;
+                    break;
+                case 2:
+                    SN[0] = "N";
+                    SN[1] = "N";
+                    document.getElementById("parcela").hidden = false;
+                    break;
+                case 3:
+                    SN[1] = "S";
+                    break;
+                case 4:
+                    SN[1] = "N";
+                    break;
             }
+        }
+
+        function inserir() {
+            SN = ["N", "N"];
+            z.innerHTML = pagInserir + bSalvar + bCancel;
+        }
+
+        function escolha(cad1, cad2) {
+            z.setAttribute("onclick", "");
+            z.innerHTML = "";
+            let pag = "<select onchange=" + cad2 + "><option/>";
+            Array.from(cad1, (h) => pag += "<option>" + h.textContent + "</option>");
+            pag += "</select>";
+            z.innerHTML = pag + "<br><br><div id='entrada'>" + bInserir + bExcluir + bCancel + "</div>";
         }
 
         function contas(cad1, cad2, cad3) {
@@ -34,26 +89,62 @@
             for (let i = 0; i < cad3.length; i++) {
                 pag += "<p>" + cad1[i].textContent + "</p>" + "<h1>" + cad2[i].textContent + "</h1>";
 
-                if (cad3[i].getElementsByTagName("parc")[0] != null) {
+                if (cad3[i].getElementsByTagName("limite")[0] != null) {
                     pag += limitepgast(cad3[i]);
                 }
             }
             
-            z.innerHTML = pag;
+            if (pag != "") {
+                z.innerHTML = pag;
+            }
+            else {
+                z.innerHTML = "<h1>Sem dados<br>no sistema</h1>";
+            }
         }
         
-        function selec() {
+        function selec(cad1) {
             n = z.getElementsByTagName("select")[0].selectedIndex - 1;
-            z.innerHTML = "";
-            let l = x.childNodes[n];
-            let pag = "<p>" + l.getElementsByTagName("descricao")[0].textContent + "</p>" + "<h1>" + l.getElementsByTagName("total")[0].textContent + "</h1>";
-            if (l.getElementsByTagName("parc")[0] != null) {
-                Array.from(l.getElementsByTagName("valor"), (h, i) => pag += "<p>R$ " + h.textContent.replace(".", ",") + " - " + l.getElementsByTagName("parc")[i].textContent + " parcelas restantes</p>");
-                pag += "<p>R$ " + l.getElementsByTagName("compras")[0].textContent.replace(".", ",") + " - compras realizada no mês</p>";
-            }
+            let tX = x.childNodes[n];
+            let lX = tX.getElementsByTagName("limite")[0];
             
-            z.setAttribute("onclick", "");
-            z.innerHTML = pag + inp + bOK + bCancel;
+            if (cad1 == 1) {
+                z.setAttribute("onclick", "");
+                z.innerHTML = "";
+                let pag = "<p>" + tX.getElementsByTagName("descricao")[0].textContent + "</p>" + "<h1>" + tX.getElementsByTagName("total")[0].textContent + "</h1>";
+
+                if (tX.getElementsByTagName("parc")[0] != null || tX.getElementsByTagName("compras")[0] != null) {
+                    Array.from(tX.getElementsByTagName("valor"), (h, i) => pag += "<p>R$ " + h.textContent.replace(".", ",") + " - " + tX.getElementsByTagName("parc")[i].textContent + " parcelas restantes</p>");
+
+                    if (lX != null) {
+                        pag += "<p>R$ " + tX.getElementsByTagName("compras")[0].textContent.replace(".", ",") +
+                                " - compras realizada no mês</p>" +
+                                "<label>R$ </label><input type='text' id='limite'> <label>Limite do cartão</label><br>";
+                    }
+
+                    pag += "<input type='number' placeholder='Parcelas' id='inpparc'><br>" +
+                           "<label>R$ </label><input type='text' placeholder='Valor' id='valparc'><br>" +
+                           "<input type='date' id='data'><br>";
+                }
+
+                
+                z.innerHTML = pag + inp + bOK + bCancel;
+                let t = document.getElementById("data");
+                
+                if (t != null) {
+                    t.value = new Date().toLocaleDateString().split("/").reverse().join("-");
+                }
+
+                if (lX != null) {
+                    document.getElementById("limite").value = lX.textContent.replace(".", ",");
+                }
+            }
+            else if (cad1 == 2) {
+                if (confirm("Deseja mesmo excluir o controle: " + tX.getElementsByTagName("descricao")[0].textContent + "?")) {
+                    tX.remove();
+                    y.setItem(l, x.outerHTML);
+                    window.location.reload();
+                }
+            }
         }
 
         function iniciar() {
@@ -65,36 +156,39 @@
                 z = document.body;
             }
             
-            z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec()')");
+            z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec(1)')");
             contas(x.getElementsByTagName("descricao"), x.getElementsByTagName("total"), x.childNodes);
         }
 
         function limitepgast(cad1) {
             let soma = 0;
-            Array.from(cad1.getElementsByTagName("parc"), (h, i) => soma += +h.textContent * +cad1.getElementsByTagName("valor")[i].textContent);
+
+            if (cad1.getElementsByTagName("parc")[0] != null) {
+                Array.from(cad1.getElementsByTagName("parc"), (h, i) => soma += +h.textContent * +cad1.getElementsByTagName("valor")[i].textContent);
+            }
 
             if (cad1.getElementsByTagName("compras")[0] != null) {
                 soma += +cad1.getElementsByTagName("compras")[0].textContent;
             }
 
-            soma = Number(+cad1.getElementsByTagName("limite")[0].textContent - soma).toFixed(2);
+            if (cad1.getElementsByTagName("limite")[0] != null){
+                soma = Number(+cad1.getElementsByTagName("limite")[0].textContent - soma).toFixed(2);
+            }
+
             return "<p>Limite restante: R$ " + soma.toString().replace(".", ",") + "</p><br>";
         }
 
         function equacao(cad1, cad2, cad3) {
             try {
-                // if (isNaN(cad2)) throw "Esse valor não é um número.";
-                // if (!(cad2 > -1)) throw "Nenhum valor digitado.";
                 if (arit.includes(cad3) == false) throw "Não há sinal de operação aritmética.";
-                // cad2 = Number(cad2);
                 cad1 = Number(cad1);
+                cad2 = Number(cad2);
                 if (cad3 == "+") return (cad1 + cad2).toFixed(2);
                 if (cad3 == "-") return (cad1 - cad2).toFixed(2);
                 if (cad3 == "*") return (cad1 * cad2).toFixed(2);
                 if (cad3 == "/") return (cad1 / cad2).toFixed(2);
             }
             catch(err) {
-                // alert(err);
             }
         }
 
@@ -141,52 +235,123 @@
             return t;
         }
 
-        function salvar() {
-            let texto = z.getElementsByTagName("input")[0];
-            let t = loopAritmetico(texto.value);
-
-            if (t != "") {
-                let t1 = "";
-                let t2 = "";
-                let t3 = "";
-                
-                if (x.childNodes[n].getElementsByTagName("compras")[0] == null) {
-                    t2 = x.childNodes[n].getElementsByTagName("total")[0];
-                    t1 = t2.textContent.slice(3).replace(",", ".");         
-                    t1 = erroNaN(t1, t[1], t[0]);
-
+        function salvar(cad1) {
+            let t = "";
+            let t1 = "";
+            let memX = "";
+            let erro = "S";
+            let texto = document.getElementById("valor");
+            let tX = x.childNodes[n];
+            let parc = document.getElementById("inpparc");
+                       
+            if (parc != null) {
+                if (parc.value != "") {
+                    let textoParc = document.getElementById("valparc");
+                    memX = "<parc>" + parc.value + "</parc>"; 
+                    
+                    if (textoParc.value == "") {
+                        memX += "<valor>0.00</valor>";
+                        t1 = 0;
+                    }
+                    else {
+                        t = loopAritmetico(textoParc.value);
+                        t1 = erroNaN(0, t[1], t[0], "\"Valor da Parcela\"");
+                        memX += "<valor>" + t1 + "</valor>";
+                    }
+                    
                     if (!(isNaN(t1))) {
-                        t2.textContent = "R$ " + t1.replace(".", ",");
+                        memX += "<data>" + new Date(document.getElementById("data").value.replaceAll("-", ",")) + "</data>";
+                        tX.innerHTML += memX;
+                        erro = "N";
+                    }
+                    else {
+                        erro = "S";
+                        textoParc.focus();
                     }
                 }
-                else {
-                    t2 = x.childNodes[n].getElementsByTagName("compras")[0];
-                    t3 = x.childNodes[n].getElementsByTagName("total")[0];
-                    t1 = t2.textContent;                    
-                    t1 = erroNaN(t1, t[1], t[0]);
-                    t2.textContent = t1;
-                    t1 = t3.textContent.slice(3).replace(",", ".");
-                    t1 = erroNaN(t1, t[1], t[0]);
-                    t3.textContent = "R$ " + t1.replace(".", ",");
+
+                let textoLimite = document.getElementById("limite");
+
+                if (textoLimite != null && (!(isNaN(t1)))) {
+                    if (textoLimite.value.replace(",", ".") != tX.getElementsByTagName("limite")[0].textContent) {
+                        t = loopAritmetico(textoLimite.value);
+                        t1 = erroNaN(0, t[1], t[0], "\"Valor do Limite\"");
+    
+                        if (!(isNaN(t1))) {
+                            tX.getElementsByTagName("limite")[0].textContent = t1;
+    
+                            if (confirm("O limite do cartão para compras foi alterado gostaria de fazer atualização?") && (erro == "S")) {
+                                erro = "N";
+                            }
+                        }
+                        else {
+                            erro = "S";
+                            textoLimite.focus();
+                        }
+                    }
                 }
+
+            }
+            
+            if (cad1 == 1) {
+                if (texto.value == "") {
+                    texto.value = 0;
+                }
+
+                t = loopAritmetico(texto.value);
+                let t2 = tX.getElementsByTagName("total")[0];
+                let t3 = tX.getElementsByTagName("compras")[0];
+                let tXparc = tX.getElementsByTagName("valor");
                 
+                if (t3 != null) {
+                    t1 = t3.textContent;                    
+                    t1 = erroNaN(t1, t[1], t[0], "\"Gastos\"");
+                    t3.textContent = t1;
+                }
+
                 if (!(isNaN(t1))) {
-                    y.setItem(l, x.outerHTML);
-                    y = "";
-                    window.location.reload();
+                    if (tXparc[0] != null) {
+                        t1 = erroNaN(t3.textContent, Array.from(tXparc, (h) => h.textContent), Array.from(tXparc, (h) => "+"), "");
+                    }
+                    else {
+                        t1 = t2.textContent.slice(3).replace(",", ".");  
+                    }
+
+                    t2.textContent = "R$ " + t1.replace(".", ",");
+                    erro = "N";
                 }
                 else {
+                    erro = "S";
                     texto.focus();
                 }
             }
+            else if (cad1 == 2 && texto.value != "") {
+                memX = "<pasta><descricao>" + texto.value + "</descricao><total>R$ 0,00</total>";
+                    
+                if (SN[1] == "S") {
+                    memX += "<compras>0.00</compras>";
+                }
+                
+                if (SN[0] == "S") {
+                    memX += "<limite>0.00</limite>";
+                }
+                
+                x.innerHTML += memX + "</pasta>";
+                erro = "N";
+            }
+
+            if (erro == "N") {
+                y.setItem(l, x.outerHTML);
+                window.location.reload();
+            }
         }
 
-        function erroNaN(cad1, cad2, cad3) {
+        function erroNaN(cad1, cad2, cad3, cad4) {
             for (let i in cad2) {
                 cad1 = equacao(cad1, cad2[i], cad3[i]);
 
                 if (isNaN(cad1)) {
-                    alert("Parâmetro " + (+i+1) + " da expressão incorreto");
+                    alert("Parâmetro " + (+i+1) + " do campo " + cad4 + " está incorreto");
                     break;
                 }
             }
