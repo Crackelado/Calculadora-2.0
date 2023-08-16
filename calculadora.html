@@ -13,6 +13,9 @@
         let z = "";
         let n = 0;
         let l = "teste";
+        let pos = "";
+        let xOrder = [];
+        let yOrder = [];
         const pagInserir = "<input type='text' autofocus placeholder='Descrição' id='valor'>" +
                             "<p>Novo controle será cartão de crédito?</p>" +
                             "<input type='radio' onclick='sn(1)' id='sim' name='sn1'>" +
@@ -32,8 +35,57 @@
         const bCancel = "<button onclick='window.location.reload()'>Cancelar</button>";
         const bExcluir = "<button onclick='excluir()'>Excluir</button> ";
         const bVoltar = "<button onclick='voltar()'>Cancelar</button>";
+        const bBackup = "<button onclick='backup()'>Backup</button> ";
+        const bRestaura = "<button id='restaura'>Restaurar</button>";
         const inp = "<input type='text' autofocus placeholder='Gastos/Rendimentos' id='valor'><br><br>";
         const arit = "+-*/";
+        const Bkp = "<backup><posicao>0</posicao><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/></backup>";
+
+        function pagar() {
+            let cad1 = x.childNodes[n].getElementsByTagName('data');
+            let cad2 = x.childNodes[n].getElementsByTagName('parc');
+            let cad3 = x.childNodes[n].getElementsByTagName('valor');
+            let cad4 = x.childNodes[n].getElementsByTagName('compras');
+            let tX = Array.from(cad1, (h) => h.textContent);
+            let nParc = 0;
+            let dAtual = new Date().toLocaleDateString().split("/");
+            let dParc = 0;
+            
+            for (let i = tX.length - 1; i > -1; i--) {
+                dParc = tX[i].split("/");
+                nParc = erroNaN(dAtual[2], [dParc[2], 12, dAtual[1], dParc[1]], ["-", "*", "+", "-"], "");
+                nParc = Number(cad2[i].textContent) - nParc;
+
+                if (nParc < 1) {
+                    cad1[i].remove();
+                    cad2[i].remove();
+                    cad3[i].remove();
+                }
+                else if (nParc < Number(cad2[i].textContent)) {
+                    cad1[i].textContent = dParc[0] + "/" + dAtual[1] + "/" + dParc[2];
+                    cad2[i].textContent = nParc;
+                }
+            }
+
+            if (cad4[0] != null) {
+                cad4[0].textContent = "0.00";
+            }
+
+            x.childNodes[n].getElementsByTagName("total")[0].textContent = "R$ " + erroNaN(0, Array.from(cad3, (h) => h.textContent), Array.from(cad3, (h) => "+"), "").replace(".", ",");
+
+            y.setItem(l, x.outerHTML);
+            window.location.reload();
+        }
+
+        function backup() {
+            pos = (Number(pos) + 1) % 10;
+            x.getElementsByTagName("posicao")[0].textContent = pos;
+            x.getElementsByTagName("bkp")[pos].textContent = new Date().toLocaleString();
+            y.setItem(l, x.outerHTML);
+            y.setItem("bkp" + pos, x.outerHTML);
+            alert("Backup realizado com sucesso!");
+            window.location.reload();
+        }
 
         function voltar() {
             z.childNodes[0].setAttribute("onchange", "selec(1)");
@@ -73,20 +125,43 @@
             z.innerHTML = pagInserir + bSalvar + bCancel;
         }
 
-        function escolha(cad1, cad2) {
+        function escolha(cad1, cad2, cad3) {
+            xOrder = [];
+            yOrder = [];
             z.setAttribute("onclick", "");
             z.innerHTML = "";
             let pag = "<select onchange=" + cad2 + "><option/>";
-            Array.from(cad1, (h) => pag += "<option>" + h.textContent + "</option>");
+            Array.from(cad1, (h) => xOrder.push(h.textContent));
+
+            if (cad3 == 2) {
+                Array.from(xOrder, (h, i) => yOrder.push({posicao:i, data:h}));
+                xOrder.sort();
+                yOrder.sort(function (a, b) {
+                    let a1 = a.data.toLowerCase();
+                    let b1 = b.data.toLowerCase();
+                    if (a1 < b1) {return -1};
+                    if (a1 > b1) {return 1};
+                    return 0;
+                });
+            }
+
+            Array.from(xOrder, (h) => pag += "<option>" + h + "</option>");
             pag += "</select>";
-            z.innerHTML = pag + "<br><br><div id='entrada'>" + bInserir + bExcluir + bCancel + "</div>";
+
+            if (cad3 == 1) {
+                z.innerHTML = pag + "<br><br><div id='entrada'>" + bInserir + bExcluir + bCancel + "<br>" + "<br>" + bBackup + bRestaura + "</div>";
+                document.getElementById("restaura").setAttribute("onclick", "escolha(x.getElementsByTagName('bkp'), 'selec(3)', 2)");
+            }
+            else if (cad3 == 2) {
+                z.innerHTML = pag + "<br><br>" + bCancel;
+            }
         }
 
         function contas(cad1, cad2, cad3) {
             z.innerHTML = "";
             let pag = "";
 
-            for (let i = 0; i < cad3.length; i++) {
+            for (let i = 0; i < cad3.length - 1; i++) {
                 pag += "<p>" + cad1[i].textContent + "</p>" + "<h1>" + cad2[i].textContent + "</h1>";
 
                 if (cad3[i].getElementsByTagName("limite")[0] != null) {
@@ -104,45 +179,65 @@
         
         function selec(cad1) {
             n = z.getElementsByTagName("select")[0].selectedIndex - 1;
-            let tX = x.childNodes[n];
-            let lX = tX.getElementsByTagName("limite")[0];
-            
-            if (cad1 == 1) {
-                z.setAttribute("onclick", "");
-                z.innerHTML = "";
-                let pag = "<p>" + tX.getElementsByTagName("descricao")[0].textContent + "</p>" + "<h1>" + tX.getElementsByTagName("total")[0].textContent + "</h1>";
 
-                if (tX.getElementsByTagName("parc")[0] != null || tX.getElementsByTagName("compras")[0] != null) {
-                    Array.from(tX.getElementsByTagName("valor"), (h, i) => pag += "<p>R$ " + h.textContent.replace(".", ",") + " - " + tX.getElementsByTagName("parc")[i].textContent + " parcelas restantes</p>");
-
-                    if (lX != null) {
-                        pag += "<p>R$ " + tX.getElementsByTagName("compras")[0].textContent.replace(".", ",") +
-                                " - compras realizada no mês</p>" +
-                                "<label>R$ </label><input type='text' id='limite'> <label>Limite do cartão</label><br>";
+            if (n > -1) {
+                let tX = x.childNodes[n];
+                let t = "";
+                
+                if (cad1 == 1) {
+                    let lX = tX.getElementsByTagName("limite")[0];
+                    z.setAttribute("onclick", "");
+                    z.innerHTML = "";
+                    let pag = "<p>" + tX.getElementsByTagName("descricao")[0].textContent + "</p>" + "<h1>" + tX.getElementsByTagName("total")[0].textContent + "</h1>";
+    
+                    if (tX.getElementsByTagName("parc")[0] != null || tX.getElementsByTagName("compras")[0] != null) {
+                        Array.from(tX.getElementsByTagName("valor"), (h, i) => pag += "<p>R$ " + h.textContent.replace(".", ",") + " - " + tX.getElementsByTagName("parc")[i].textContent + " parcelas restantes</p>");
+    
+                        if (lX != null) {
+                            pag += "<p>R$ " + tX.getElementsByTagName("compras")[0].textContent.replace(".", ",") +
+                                    " - compras realizada no mês</p>" +
+                                    "<label>R$ </label><input type='text' id='limite'> <label>Limite do cartão</label><br>";
+                        }
+    
+                        pag += "<input type='number' placeholder='Parcelas' id='inpparc'><br>" +
+                               "<label>R$ </label><input type='text' placeholder='Valor' id='valparc'><br>" +
+                               "<input type='date' id='data'><br>";
+                        t = "<br><br><button onclick='pagar()'>Pagar</button>";
                     }
-
-                    pag += "<input type='number' placeholder='Parcelas' id='inpparc'><br>" +
-                           "<label>R$ </label><input type='text' placeholder='Valor' id='valparc'><br>" +
-                           "<input type='date' id='data'><br>";
+                    
+                    z.innerHTML = pag + inp + bOK + bCancel + t;
+                    t = document.getElementById("data");
+                    
+                    if (t != null) {
+                        t.value = new Date().toLocaleDateString().split("/").reverse().join("-");
+                    }
+                    
+                    if (lX != null) {
+                        document.getElementById("limite").value = lX.textContent.replace(".", ",");
+                    }
                 }
-
-                
-                z.innerHTML = pag + inp + bOK + bCancel;
-                let t = document.getElementById("data");
-                
-                if (t != null) {
-                    t.value = new Date().toLocaleDateString().split("/").reverse().join("-");
+                else if (cad1 == 2) {
+                    if (confirm("Deseja mesmo excluir o controle: " + tX.getElementsByTagName("descricao")[0].textContent + "?")) {
+                        tX.remove();
+                        y.setItem(l, x.outerHTML);
+                        window.location.reload();
+                    }
                 }
-
-                if (lX != null) {
-                    document.getElementById("limite").value = lX.textContent.replace(".", ",");
-                }
-            }
-            else if (cad1 == 2) {
-                if (confirm("Deseja mesmo excluir o controle: " + tX.getElementsByTagName("descricao")[0].textContent + "?")) {
-                    tX.remove();
-                    y.setItem(l, x.outerHTML);
-                    window.location.reload();
+                else if (cad1 == 3) {
+                    let nPos = "bkp" + yOrder[n].posicao;
+                    
+                    if (y.getItem(nPos) != null) {
+                        if (confirm("Deseja restaurar o backup da data/hora: " + xOrder[n] + "?")) {
+                            tX = x.getElementsByTagName("backup")[0];
+                            x.innerHTML = y.getItem(nPos).split("calc>")[1].slice(0, -2);
+                            x.getElementsByTagName("backup")[0].innerHTML = tX.innerHTML;
+                            y.setItem(l, x.outerHTML);
+                            window.location.reload();
+                        }
+                    }
+                    else {
+                        alert("Backup não existe!");
+                    }
                 }
             }
         }
@@ -153,10 +248,11 @@
                 parser = new DOMParser();
                 xmlDoc = parser.parseFromString(y.getItem(l), "text/xml")
                 x = xmlDoc.childNodes[0];
+                pos = x.getElementsByTagName("posicao")[0].textContent;
                 z = document.body;
             }
             
-            z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec(1)')");
+            z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec(1)', 1)");
             contas(x.getElementsByTagName("descricao"), x.getElementsByTagName("total"), x.childNodes);
         }
 
@@ -260,7 +356,7 @@
                     }
                     
                     if (!(isNaN(t1))) {
-                        memX += "<data>" + new Date(document.getElementById("data").value.replaceAll("-", ",")) + "</data>";
+                        memX += "<data>" + document.getElementById("data").value.split("-").reverse().join("/") + "</data>";
                         tX.innerHTML += memX;
                         erro = "N";
                     }
@@ -315,14 +411,17 @@
                     }
                     else {
                         t1 = t2.textContent.slice(3).replace(",", ".");  
+                        t1 = erroNaN(t1, t[1], t[0], "\"Gastos\"");
                     }
-
-                    t2.textContent = "R$ " + t1.replace(".", ",");
-                    erro = "N";
-                }
-                else {
-                    erro = "S";
-                    texto.focus();
+                    
+                    if (!(isNaN(t1))) {
+                        t2.textContent = "R$ " + t1.replace(".", ",");
+                        erro = "N";
+                    }
+                    else {
+                        erro = "S";
+                        texto.focus();
+                    }
                 }
             }
             else if (cad1 == 2 && texto.value != "") {
