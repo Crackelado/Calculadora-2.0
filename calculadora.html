@@ -9,7 +9,7 @@
         let x = "";
         let z = "";
         let n = 0;
-        let l = "teste";
+        let l = "calc";
         let pos = "";
         let xOrder = [];
         let yOrder = [];
@@ -118,6 +118,7 @@
         }
 
         function inserir() {
+            z.setAttribute("onclick", "");
             SN = ["N", "N"];
             z.innerHTML = pagInserir + bSalvar + bCancel;
         }
@@ -161,21 +162,18 @@
             for (let i = 0; i < cad3.length - 1; i++) {
                 pag += "<p>" + cad1[i].textContent + "</p>" + "<h1>" + cad2[i].textContent + "</h1>";
 
-                if (cad3[i].getElementsByTagName("limite")[0] != null) {
-                    pag += limitepgast(cad3[i]);
+                if (cad3[i + 1].getElementsByTagName("limite")[0] != null) {
+                    pag += limitepgast(cad3[i + 1]);
                 }
             }
             
             if (pag != "") {
                 z.innerHTML = pag;
             }
-            else {
-                z.innerHTML = "<h1>Sem dados<br>no sistema</h1>";
-            }
         }
         
         function selec(cad1) {
-            n = z.getElementsByTagName("select")[0].selectedIndex - 1;
+            n = z.getElementsByTagName("select")[0].selectedIndex;
 
             if (n > -1) {
                 let tX = x.childNodes[n];
@@ -221,10 +219,10 @@
                     }
                 }
                 else if (cad1 == 3) {
-                    let nPos = "bkp" + yOrder[n].posicao;
+                    let nPos = "bkp" + yOrder[n - 1].posicao;
                     
                     if (y.getItem(nPos) != null) {
-                        if (confirm("Deseja restaurar o backup da data/hora: " + xOrder[n] + "?")) {
+                        if (confirm("Deseja restaurar o backup da data/hora: " + xOrder[n - 1] + "?")) {
                             tX = x.getElementsByTagName("backup")[0];
                             x.innerHTML = y.getItem(nPos).split("calc>")[1].slice(0, -2);
                             x.getElementsByTagName("backup")[0].innerHTML = tX.innerHTML;
@@ -240,17 +238,29 @@
         }
 
         function iniciar() {
-            if (y == "") {
-                y = window.localStorage;
+            y = window.localStorage;
+            z = document.body;
+            
+            if (y.getItem(l) != null) {
                 parser = new DOMParser();
                 xmlDoc = parser.parseFromString(y.getItem(l), "text/xml")
                 x = xmlDoc.childNodes[0];
-                pos = x.getElementsByTagName("posicao")[0].textContent;
-                z = document.body;
+
+                if (x != "" && x.getElementsByTagName("descricao")[0] != null) {
+                    pos = x.getElementsByTagName("posicao")[0].textContent;
+                    contas(x.getElementsByTagName("descricao"), x.getElementsByTagName("total"), x.childNodes);
+                    z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec(1)', 1)");
+                }
+                else {
+                    z.setAttribute("onclick", "inserir()");
+                    z.innerHTML = "<h1>Sem dados<br>no sistema</h1>";
+                }
             }
-            
-            z.setAttribute("onclick", "escolha(x.getElementsByTagName('descricao'), 'selec(1)', 1)");
-            contas(x.getElementsByTagName("descricao"), x.getElementsByTagName("total"), x.childNodes);
+            else {
+                x = document.createElement("calc");
+                z.setAttribute("onclick", "inserir()");
+                z.innerHTML = "<h1>Sem dados<br>no sistema</h1>";
+            }
         }
 
         function limitepgast(cad1) {
@@ -333,9 +343,9 @@
             let t1 = "";
             let memX = "";
             let erro = "S";
-            let texto = document.getElementById("valor");
             let tX = x.childNodes[n];
             let parc = document.getElementById("inpparc");
+            let texto = document.getElementById("valor");
                        
             if (parc != null) {
                 if (parc.value != "") {
@@ -422,7 +432,15 @@
                 }
             }
             else if (cad1 == 2 && texto.value != "") {
-                memX = "<pasta><descricao>" + texto.value + "</descricao><total>R$ 0,00</total>";
+                if (x.getElementsByTagName("posicao")[0] == null) {
+                    for (let i = 0; i < 10; i++) {
+                        memX += "<bkp></bkp>";
+                    }
+
+                    memX = "<backup><posicao>0</posicao>" + memX + "</backup>";
+                }
+
+                memX += "<pasta><descricao>" + texto.value + "</descricao><total>R$ 0,00</total>";
                     
                 if (SN[1] == "S") {
                     memX += "<compras>0.00</compras>";
@@ -433,6 +451,8 @@
                 }
                 
                 x.innerHTML += memX + "</pasta>";
+
+
                 erro = "N";
             }
 
