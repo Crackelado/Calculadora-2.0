@@ -1,6 +1,51 @@
 <!DOCTYPE html>
+<html>
 <head>
     <title>Calculadora Doméstica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            max-width: 480px;
+            /* max-height: 960px; */
+            /* position: sticky; */
+            font-size: 12pt;
+            /* zoom: 100%; */
+        }
+
+        h1 {
+            font-size: 30pt;
+        }
+
+        html {
+            /* background-color: #ffffff; */
+            font-family: tahoma;
+            /* font-weight: 200; */
+            /* margin: auto; */
+            /* line-height: 0.8; */
+            /* width: 480; */
+            /* height: 960px; */
+            /* margin: 0;
+            padding: 0;
+            box-sizing: border-box; */
+            /* max-width: 480px; */
+        }
+
+        /* body {
+            height: 100%;
+            width: 50%;
+            min-height: 100vw;
+            max-width: 400px;
+            background-color: brown;
+            margin: 0 auto;
+        } */
+
+        /* p, h1, input, select {
+            width: 300px;
+            margin-right: 200px;
+        } */
+    </style>
     <script>
         let SN = ["N", "N"];
         let y = "";
@@ -218,7 +263,7 @@
                         window.location.reload();
                     }
                 }
-                else if (cad1 == 3) {
+                else if (cad1 == 3 && n > 0) {
                     let nPos = "bkp" + yOrder[n - 1].posicao;
                     
                     if (y.getItem(nPos) != null) {
