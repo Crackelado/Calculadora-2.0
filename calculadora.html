@@ -5,7 +5,7 @@
     <title>Calculadora Doméstica</title>
     <style>
         * {
-            margin: 3px 0 3px 0;
+            margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-size: 95%;
@@ -13,6 +13,16 @@
 
         h1 {
             font-size: 30pt;
+            background-color: blue;
+            color: white;
+            border: 3px solid blue;
+        }
+
+        p {
+            background-color: darkblue;
+            color: white;
+            font-weight: bold;
+            border: 3px solid darkblue;
         }
 
         html {
@@ -52,7 +62,7 @@
         const bVoltar = "<button onclick='voltar()'>Cancelar</button>";
         const bBackup = "<button onclick='backup()'>Backup</button> ";
         const bRestaura = "<button id='restaura'>Restaurar</button>";
-        const inp = "<input type='number' autofocus placeholder='Gastos/Rendimentos' id='valor'><br><br>";
+        const inp = "<input type='text' autofocus placeholder='Gastos/Rendimentos' id='valor' onkeypress='return event.charCode >= 42 && event.charCode <= 57'><br><br>";
         const arit = "+-*/";
         const Bkp = "<backup><posicao>0</posicao><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/><bkp/></backup>";
 
@@ -165,7 +175,7 @@
             pag += "</select>";
 
             if (cad3 == 1) {
-                z.innerHTML = pag + "<br><br><div id='entrada'>" + bInserir + bExcluir + bCancel + "<br>" + "<br>" + bBackup + bRestaura + "</div>";
+                z.innerHTML = pag + "<br><br><div id='entrada'>" + bInserir + bExcluir + bCancel + "<br><br>" + bBackup + bRestaura + "</div>";
                 document.getElementById("restaura").setAttribute("onclick", "escolha(x.getElementsByTagName('bkp'), 'selec(3)', 2)");
             }
             else if (cad3 == 2) {
@@ -209,12 +219,12 @@
                         if (lX != null) {
                             pag += "<p>R$ " + tX.getElementsByTagName("compras")[0].textContent.replace(".", ",") +
                                     " - compras realizada no mês</p>" +
-                                    "<label>R$ </label><input type='number' id='limite'> <label>Limite do cartão</label><br>";
+                                    "<label>R$ </label><input type='text' id='limite' onkeypress='return event.charCode >= 42 && event.charCode <= 57'> <label>Limite do cartão</label><br>";
                         }
     
-                        pag += "<input type='number' placeholder='Parcelas' id='inpparc'><br>" +
-                               "<label>R$ </label><input type='number' placeholder='Valor' id='valparc'><br>" +
-                               "<input type='date' id='data'><br>";
+                        pag += "<input type='number' placeholder='Parcelas' id='inpparc' onkeypress='return event.charCode >= 48 && event.charCode <= 57'><br>" +
+                            "<label>R$ </label><input type='text' placeholder='Valor' id='valparc' onkeypress='return event.charCode >= 42 && event.charCode <= 57'><br>" +
+                            "<input type='date' id='data'><br>";
                         t = "<br><br><button onclick='pagar()'>Pagar</button>";
                     }
                     
@@ -226,7 +236,7 @@
                     }
                     
                     if (lX != null) {
-                        document.getElementById("limite").setAttribute("placeholder", lX.textContent.replace(".", ","));
+                        document.getElementById("limite").value = lX.textContent.replace(".", ",");
                     }
                 }
                 else if (cad1 == 2) {
@@ -296,7 +306,7 @@
                 soma = Number(+cad1.getElementsByTagName("limite")[0].textContent - soma).toFixed(2);
             }
 
-            return "<p>Limite restante: R$ " + soma.toString().replace(".", ",") + "</p><br>";
+            return "<p>Limite restante: R$ " + soma.toString().replace(".", ",") + "</p><h1 style='height: 7px'></h1>";
         }
 
         function equacao(cad1, cad2, cad3) {
@@ -394,7 +404,7 @@
                 let textoLimite = document.getElementById("limite");
 
                 if (textoLimite != null && (!(isNaN(t1)))) {
-                    if (textoLimite.value.replace(",", ".") != tX.getElementsByTagName("limite")[0].textContent && textoLimite.value != "") {
+                    if (textoLimite.value.replace(",", ".") != tX.getElementsByTagName("limite")[0].textContent) {
                         t = loopAritmetico(textoLimite.value);
                         t1 = erroNaN(0, t[1], t[0], "\"Valor do Limite\"");
     
