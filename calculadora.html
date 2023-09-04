@@ -96,7 +96,12 @@
                 cad4[0].textContent = "0.00";
             }
 
-            x.childNodes[n].getElementsByTagName("total")[0].textContent = "R$ " + erroNaN(0, Array.from(cad3, (h) => h.textContent), Array.from(cad3, (h) => "+"), "").replace(".", ",");
+            if (cad3.length > 0) {
+                x.childNodes[n].getElementsByTagName("total")[0].textContent = "R$ " + erroNaN(0, Array.from(cad3, (h) => h.textContent), Array.from(cad3, (h) => "+"), "").replace(".", ",");
+            }
+            else {
+                x.childNodes[n].getElementsByTagName("total")[0].textContent = "R$ 0,00";
+            }
 
             y.setItem(l, x.outerHTML);
             window.location.reload();
